@@ -15,11 +15,16 @@ export const conectarCliente = (cliente: Socket) => {
 }
 
 
-export const desconectar = (cliente: Socket) => {
+export const desconectar = (cliente: Socket, io: socketIO.Server) => {
 
     cliente.on('disconnect', () => {
         console.log('Cliente desconectado');  
         usuariosConectados.borrarUsuario(cliente.id);
+
+        // Emito a todo el mundo, la lista de los usuarios que actualmente quedan activos
+        io.emit('usuarios-activos', usuariosConectados.getLista());
+
+        
     });
     
 }
@@ -29,7 +34,7 @@ export const desconectar = (cliente: Socket) => {
 export const mensaje = ( cliente: Socket, io: socketIO.Server ) => {
     cliente.on('mensaje', (payload: {de: string, cuerpo: string }) => {
         console.log('Mensaje Recibido', payload);
- // Estoy emitiendo a todos los usuarios conetados que hay un nuevo mensaje
+        // Estoy emitiendo a todos los usuarios conetados que hay un nuevo mensaje
         io.emit('mensaje-nuevo', payload);
     });
 }
@@ -41,10 +46,23 @@ export const configurarUsuario = ( cliente: Socket, io: socketIO.Server ) => {
     cliente.on('configurar-usuario', (payload: {nombre: string }, callback: Function) => {
       
         usuariosConectados.actualizarNombre( cliente.id, payload.nombre );
+          // Emito a todo el mundo, la lista de los usuarios que actualmente quedan activos
+        io.emit('usuarios-activos', usuariosConectados.getLista());
 
         callback({
             ok: true,
             mensaje: `Usuario ${ payload.nombre }, configurado`
         });
+    });
+}
+
+// Obtener Usuarios
+export const obtenerUsuarios = ( cliente: Socket, io: socketIO.Server ) => {
+    cliente.on('obtener-usuarios', () => {
+      
+          // Emito a todo el mundo, la lista de los usuarios que actualmente quedan activos
+          // con el to , se lo mandamos a un cliente en particular( a la persona que esta conectada )
+        io.to( cliente.id ).emit('usuarios-activos', usuariosConectados.getLista());
+
     });
 }

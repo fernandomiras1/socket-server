@@ -46,10 +46,13 @@ export default class Server {
             socket.configurarUsuario(cliente, this.io);
 
             // Desconectar
-            socket.desconectar(cliente);
+            socket.desconectar(cliente, this.io);
 
             //Mensajes ( que este pendiente de esecuchar los mensajes)
             socket.mensaje(cliente, this.io);
+
+            //Obtener usuarios Actibos
+            socket.obtenerUsuarios(cliente, this.io);
 
 
         });
